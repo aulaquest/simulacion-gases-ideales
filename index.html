@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Gases Ideales v6.1</title>
+    <title>Simulador de Gases Ideales v6.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -423,19 +422,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Gráficas del Sistema -->
-            <div class="space-y-3 pt-4 border-t border-slate-700">
-                <h3 class="text-sm font-bold text-sky-400 mb-2">Gráficas del Sistema</h3>
-                <div class="bg-slate-800/50 p-3 rounded-lg space-y-3">
-                    <div>
-                        <canvas id="velocity-chart"></canvas>
-                    </div>
-                     <div>
-                        <canvas id="energy-chart"></canvas>
-                    </div>
-                </div>
-            </div>
             
         </div>
         <footer class="p-2 text-center text-xs text-gray-500 z-20 mt-auto pt-4">
@@ -494,8 +480,6 @@
             dataTableBody: document.getElementById('data-table-body'),
             exportCsvBtn: document.getElementById('export-csv-btn'),
             clearDataBtn: document.getElementById('clear-data-btn'),
-            velocityChart: document.getElementById('velocity-chart'),
-            energyChart: document.getElementById('energy-chart'),
         };
 
         const ctx = dom.canvas.getContext('2d');
@@ -539,12 +523,13 @@
                 this.vy = Math.sin(angle) * speed;
             }
 
-            draw() {
+            draw(yOffset = 0) {
                 ctx.globalAlpha = this.opacity;
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.arc(this.x, this.y + yOffset, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
                 ctx.fill();
+                ctx.closePath();
                 ctx.globalAlpha = 1.0;
             }
             
@@ -605,7 +590,6 @@
 
         function resizeCanvas() {
             dom.canvas.width = dom.container.clientWidth;
-            // Aumentar la altura del canvas para el efecto de escape
             dom.canvas.height = dom.container.clientHeight + 150;
         }
 
@@ -761,10 +745,7 @@
         }
 
         function gameLoop() {
-            // Ajustar el origen (0,0) del canvas para que coincida con el (0,0) del contenedor
-            ctx.clearRect(0, -150, dom.canvas.width, dom.canvas.height); // Limpiar todo el canvas extendido
-            ctx.save();
-            ctx.translate(0, 150);
+            ctx.clearRect(0, 0, dom.canvas.width, dom.canvas.height);
             
             const oldWidth = dom.container.clientWidth;
             state.wallVelocity = 0;
@@ -821,25 +802,22 @@
                 if (isInContainer) { 
                     remainingParticles.push(p); 
                 } else {
-                    escapedParticles.push(p); // Añadir a la lista de escape
+                    escapedParticles.push(p);
                     if (p.isLight) { state.lightCount = Math.max(0, state.lightCount - 1); } 
                     else { state.heavyCount = Math.max(0, state.heavyCount - 1); }
                 }
             });
             particles = remainingParticles;
 
-            // Manejar partículas escapadas
             escapedParticles = escapedParticles.filter(p => {
                 p.x += p.vx;
                 p.y += p.vy;
-                p.opacity -= 0.01; // Desvanecerse
+                p.opacity -= 0.01;
                 return p.opacity > 0;
             });
             
-            particles.forEach(p => p.draw());
-            escapedParticles.forEach(p => p.draw());
-
-            ctx.restore(); // Restaurar el estado del canvas
+            particles.forEach(p => p.draw(150));
+            escapedParticles.forEach(p => p.draw(150));
 
             updateDisplays();
             
