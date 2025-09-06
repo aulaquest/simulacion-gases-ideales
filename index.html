@@ -103,7 +103,7 @@
         
         .checkbox-label { position: relative; cursor: pointer; user-select: none; padding-left: 30px; }
         .checkbox-label input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
-        .checkmark { position: absolute; top: 0; left: 0; height: 20px; width: 20px; background-color: #334155; border: 1px solid #475569; border-radius: 4px; transition: background-color 0.2s; }
+        .checkmark { position: absolute; top: 0; left: 0; height: 20px; width: 20px; background-color: #334155; border: 1px solid #475569; border-radius: 4px; transition: background-color: 0.2s; }
         .checkbox-label:hover input ~ .checkmark { background-color: #475569; }
         .checkbox-label input:checked ~ .checkmark { background-color: #4f46e5; }
         .checkmark:after { content: ""; position: absolute; display: none; left: 6px; top: 2px; width: 5px; height: 10px; border: solid white; border-width: 0 3px 3px 0; transform: rotate(45deg); }
@@ -214,7 +214,7 @@
 
     <!-- Columna de Simulación (60%) -->
     <div class="w-full md:w-[60%] flex flex-col">
-        <div id="simulation-container" class="relative min-h-screen bg-[#020617] flex flex-col items-center p-4 overflow-hidden">
+        <div id="simulation-container" class="relative md:min-h-screen bg-[#020617] flex flex-col items-center p-4 overflow-hidden">
             
             <div id="info-hud" class="w-full max-w-lg bg-slate-900/70 backdrop-blur-sm p-2 rounded-lg z-20 border border-slate-700 shadow-lg flex-shrink-0">
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-center">
@@ -275,7 +275,7 @@
                 <div id="wall-handle"></div>
             </div>
             
-            <div class="flex-grow"></div> <!-- Spacer -->
+            <!-- El div espaciador que causaba problemas en móvil ha sido eliminado -->
 
             <div id="temp-controls" class="w-full max-w-xs flex items-center justify-center p-2 mb-4 bg-slate-900/70 backdrop-blur-sm rounded-full border border-slate-700 gap-2 z-20">
                 <button id="temp-minus-btn" class="temp-control-btn w-12 h-12 rounded-full text-2xl flex items-center justify-center transition-transform active:scale-90">🧊</button>
@@ -1054,19 +1054,34 @@
             dom.clearDataBtn.addEventListener('click', clearDataLog);
             dom.exportCsvBtn.addEventListener('click', exportDataToCsv);
 
-            dom.lid.addEventListener('mousedown', (e) => { state.isDraggingLid = true; });
-            dom.wallHandle.addEventListener('mousedown', (e) => { 
+            // --- Lógica de Arrastre Unificada para Ratón y Táctil ---
+            
+            // Función auxiliar para obtener la coordenada X correcta del evento
+            function getClientX(e) {
+                return e.touches ? e.touches[0].clientX : e.clientX;
+            }
+
+            const startDragLid = (e) => {
+                state.isDraggingLid = true;
+                if (e.type === 'touchstart') e.preventDefault();
+            };
+
+            const startDragWall = (e) => {
                 if (state.constantParam === 'none' || state.constantParam === 'T' || state.constantParam === 'P_mod_V') {
-                    state.isDraggingWall = true; 
+                    state.isDraggingWall = true;
+                    if (e.type === 'touchstart') e.preventDefault();
                 }
-            });
+            };
 
-            window.addEventListener('mouseup', () => { state.isDraggingLid = false; state.isDraggingWall = false; });
-            window.addEventListener('mouseleave', () => { state.isDraggingLid = false; state.isDraggingWall = false; });
+            const endDrag = () => {
+                state.isDraggingLid = false;
+                state.isDraggingWall = false;
+            };
 
-            window.addEventListener('mousemove', (e) => {
+            const handleDrag = (e) => {
                 if (state.isDraggingLid) {
-                    const clientX = e.clientX;
+                    if (e.type === 'touchmove') e.preventDefault();
+                    const clientX = getClientX(e);
                     const containerRect = dom.container.getBoundingClientRect();
                     let closedRatio = (clientX - containerRect.left) / containerRect.width;
                     let closedWidthRatio = Math.max(0, Math.min(1, closedRatio));
@@ -1075,7 +1090,8 @@
                     dom.lid.style.width = `${closedWidthRatio * 100}%`;
                 }
                 if (state.isDraggingWall) {
-                    const clientX = e.clientX;
+                    if (e.type === 'touchmove') e.preventDefault();
+                    const clientX = getClientX(e);
                     const wrapperRect = dom.containerWrapper.getBoundingClientRect();
                     const handleWidth = dom.wallHandle.clientWidth;
                     
@@ -1087,9 +1103,6 @@
                     const oldWidth = dom.container.clientWidth;
                     const newWidth = wrapperRect.width - newLeft;
                     
-                    const widthRatio = newWidth / oldWidth;
-                    particles.forEach(p => { p.x *= widthRatio; });
-
                     dom.container.style.transform = `translateX(${newLeft}px)`;
                     dom.container.style.width = `${newWidth}px`;
                     dom.wallHandle.style.transform = `translateY(-50%) translateX(${newLeft}px)`;
@@ -1110,8 +1123,26 @@
                         }
                     }
                 }
-            });
+            };
+
+            // Eventos para iniciar el arrastre
+            dom.lid.addEventListener('mousedown', startDragLid);
+            dom.lid.addEventListener('touchstart', startDragLid, { passive: false });
+
+            dom.wallHandle.addEventListener('mousedown', startDragWall);
+            dom.wallHandle.addEventListener('touchstart', startDragWall, { passive: false });
             
+            // Eventos para mover durante el arrastre
+            window.addEventListener('mousemove', handleDrag);
+            window.addEventListener('touchmove', handleDrag, { passive: false });
+            
+            // Eventos para finalizar el arrastre
+            window.addEventListener('mouseup', endDrag);
+            window.addEventListener('mouseleave', endDrag); // Se mantiene para el ratón
+            window.addEventListener('touchend', endDrag);
+            window.addEventListener('touchcancel', endDrag);
+            
+            // Eventos para control de temperatura (también con soporte táctil)
             ['mousedown', 'touchstart'].forEach(evt => {
                 dom.tempPlusBtn.addEventListener(evt, (e) => { e.preventDefault(); startTempChange(5); });
                 dom.tempMinusBtn.addEventListener(evt, (e) => { e.preventDefault(); startTempChange(-5); });
