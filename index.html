@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Gases Ideales v6.4</title>
+    <title>Simulador de Gases Ideales v6.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,12 +27,12 @@
             position: relative;
             width: 98%;
             max-width: 550px;
-            margin: 3rem 1rem 48px auto; /* Aumentado margen superior */
+            margin: 3rem auto 48px; /* Centrado y con margen superior/inferior */
         }
         #gas-container {
             position: relative;
             /* width y transform se manejan por JS */
-            height: 300px; /* Altura reducida */
+            height: 300px; 
             background: rgba(156, 163, 175, 0.05);
             border: 3px solid rgba(209, 213, 219, 0.3);
             border-top: none; 
@@ -208,6 +208,15 @@
             0%, 100% { color: #ef4444; text-shadow: 0 0 5px #ef4444; } 50% { color: #f87171; text-shadow: 0 0 15px #f87171; }
         }
         .flashing-red { animation: flashing-red-anim 0.8s infinite; }
+
+        @media (min-width: 1024px) {
+            #gas-container-wrapper {
+                max-width: 800px; /* Ancho mayor para PC */
+            }
+            #gas-container {
+                height: 450px; /* Altura proporcional para mantener aspecto */
+            }
+        }
     </style>
 </head>
 <body class="text-gray-300 flex flex-col md:flex-row">
@@ -275,8 +284,6 @@
                 <div id="wall-handle"></div>
             </div>
             
-            <!-- El div espaciador que causaba problemas en móvil ha sido eliminado -->
-
             <div id="temp-controls" class="w-full max-w-xs flex items-center justify-center p-2 mb-4 bg-slate-900/70 backdrop-blur-sm rounded-full border border-slate-700 gap-2 z-20">
                 <button id="temp-minus-btn" class="temp-control-btn w-12 h-12 rounded-full text-2xl flex items-center justify-center transition-transform active:scale-95 active:brightness-125">🧊</button>
                 <div class="w-24 h-12 bg-slate-800 rounded-full flex items-center justify-center font-bold text-lg" id="temp-box">
@@ -484,10 +491,10 @@
 
         const ctx = dom.canvas.getContext('2d');
         let particles = [];
-        let escapedParticles = []; // Nuevo array para partículas que escapan
+        let escapedParticles = [];
         let dataLog = [];
         let animationFrameId;
-        let tempInterval, animationInterval, stopwatchInterval, collisionTimeout;
+        let tempInterval, stopwatchInterval, collisionTimeout;
         
         const R = 0.0821, MAX_PRESSURE = 50, MAX_VOLUME = 12.0;
         let maxContainerWidth = 0, wallCollisionCount = 0;
@@ -838,7 +845,10 @@
             tempInterval = setInterval(change, 100);
         }
 
-        function stopTempChange() { clearInterval(tempInterval); tempInterval = null; }
+        function stopTempChange() { 
+            clearInterval(tempInterval); 
+            tempInterval = null; 
+        }
         
         function updateConstantState(mode) {
             state.constantParam = mode;
@@ -1106,7 +1116,7 @@
                     dom.container.style.width = `${newWidth}px`;
                     dom.wallHandle.style.transform = `translateY(-50%) translateX(${newLeft}px)`;
                     
-                    resizeCanvas(); // <-- AÑADIDO: Actualiza el tamaño del lienzo en tiempo real para evitar distorsiones.
+                    resizeCanvas(); 
 
                     if (state.constantParam === 'P_mod_V') {
                         const n = (state.lightCount + state.heavyCount) / 100;
@@ -1139,7 +1149,7 @@
             
             // Eventos para finalizar el arrastre
             window.addEventListener('mouseup', endDrag);
-            window.addEventListener('mouseleave', endDrag); // Se mantiene para el ratón
+            window.addEventListener('mouseleave', endDrag);
             window.addEventListener('touchend', endDrag);
             window.addEventListener('touchcancel', endDrag);
             
@@ -1158,5 +1168,4 @@
     </script>
 </body>
 </html>
-
 
