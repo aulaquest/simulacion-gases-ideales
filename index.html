@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Gases Ideales v6.2</title>
+    <title>Simulador de Gases Ideales v6.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1106,6 +1106,8 @@
                     dom.container.style.transform = `translateX(${newLeft}px)`;
                     dom.container.style.width = `${newWidth}px`;
                     dom.wallHandle.style.transform = `translateY(-50%) translateX(${newLeft}px)`;
+                    
+                    resizeCanvas(); // <-- AÑADIDO: Actualiza el tamaño del lienzo en tiempo real para evitar distorsiones.
 
                     if (state.constantParam === 'P_mod_V') {
                         const n = (state.lightCount + state.heavyCount) / 100;
