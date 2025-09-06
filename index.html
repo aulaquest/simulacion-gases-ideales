@@ -278,11 +278,11 @@
             <!-- El div espaciador que causaba problemas en móvil ha sido eliminado -->
 
             <div id="temp-controls" class="w-full max-w-xs flex items-center justify-center p-2 mb-4 bg-slate-900/70 backdrop-blur-sm rounded-full border border-slate-700 gap-2 z-20">
-                <button id="temp-minus-btn" class="temp-control-btn w-12 h-12 rounded-full text-2xl flex items-center justify-center transition-transform active:scale-90">🧊</button>
+                <button id="temp-minus-btn" class="temp-control-btn w-12 h-12 rounded-full text-2xl flex items-center justify-center transition-transform active:scale-95 active:brightness-125">🧊</button>
                 <div class="w-24 h-12 bg-slate-800 rounded-full flex items-center justify-center font-bold text-lg" id="temp-box">
                     <span id="temp-box-display">300 K</span>
                 </div>
-                <button id="temp-plus-btn" class="temp-control-btn w-12 h-12 rounded-full text-2xl flex items-center justify-center transition-transform active:scale-90">🔥</button>
+                <button id="temp-plus-btn" class="temp-control-btn w-12 h-12 rounded-full text-2xl flex items-center justify-center transition-transform active:scale-95 active:brightness-125">🔥</button>
             </div>
         </div>
     </div>
@@ -826,15 +826,6 @@
             animationFrameId = requestAnimationFrame(gameLoop);
         }
         
-        function createTempAnimation(type) {
-            const particleEl = document.createElement('div');
-            particleEl.textContent = type === 'heat' ? '🔥' : '🧊';
-            particleEl.className = type === 'heat' ? 'heat-particle' : 'ice-particle';
-            particleEl.style.left = `${Math.random() * 80 + 10}%`;
-            dom.simulationContainer.appendChild(particleEl);
-            setTimeout(() => particleEl.remove(), 1500);
-        }
-        
         function startTempChange(direction) {
             if (tempInterval || dom.tempControls.classList.contains('disabled') || particles.length === 0) return;
             const change = () => {
@@ -845,10 +836,9 @@
             };
             change();
             tempInterval = setInterval(change, 100);
-            animationInterval = setInterval(() => createTempAnimation(direction > 0 ? 'heat' : 'cold'), 200);
         }
 
-        function stopTempChange() { clearInterval(tempInterval); clearInterval(animationInterval); tempInterval = null; animationInterval = null; }
+        function stopTempChange() { clearInterval(tempInterval); tempInterval = null; }
         
         function updateConstantState(mode) {
             state.constantParam = mode;
@@ -1013,6 +1003,15 @@
                             <li><strong>Contador de Colisiones:</strong> Mide el número total de colisiones con las paredes en un intervalo de tiempo seleccionado.</li>
                         </ul>
                     </div>
+                     <div>
+                        <h4 class="font-bold text-base text-sky-400">Registro de Datos</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-300 space-y-1 mt-1">
+                            <li><strong>¿Para qué sirve?:</strong> La tabla de datos te permite guardar una "foto" del estado actual de la simulación para compararla más tarde.</li>
+                            <li><strong>¿Cómo se usa?:</strong> Simplemente pulsa el botón <strong>"Añadir Datos a la Tabla"</strong> en el panel derecho en cualquier momento.</li>
+                            <li><strong>¿Qué guarda?:</strong> Cada vez que pulsas, se añade una nueva fila a la tabla con los valores actuales de Ley aplicada, Presión (P), Volumen (V), Temperatura (T) y el número de partículas.</li>
+                            <li><strong>Exportar:</strong> Puedes exportar todos los datos que has recogido a un archivo CSV para analizarlos en una hoja de cálculo usando el botón "Exportar CSV".</li>
+                        </ul>
+                    </div>
                 </div>
             `;
             
@@ -1159,4 +1158,5 @@
     </script>
 </body>
 </html>
+
 
